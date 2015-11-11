@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>À propos de moi</title>
+  </head>
+  <style>
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #AFF;
+}
+form, iframe {
+  width: 45%;
+  min-height: 80%;
+  margin: 1em;
+  border: 1px solid #888;
+  border-radius: .25em;
+}
+form {
+  padding: 1em;
+}
+form > p > * {
+  vertical-align: top;
+}
+iframe {
+  float: right;
+  background: white;
+}
+label {
+  width: 7em;
+  display: inline-block;
+}
+input[type=text], textarea {
+  border: 1px solid #AAA;
+  border-radius: .25em;
+  padding: .25em;
+}
+input[type=button] {
+  border: 1px solid #0F0;
+  border-radius: .25em;
+  padding: .25em .5em;
+  background-color: #8F8;
+}
+
+#templates {
+  display: none;
+}
+  </style>
+  <body>
+    <iframe src="public/"></iframe>
+    <form >
+      <p>The URL of your public page is <a target="_blank" id="publicUrl"></a></p>
+      <p>
+        <label for="name">Name</label>
+        <input type="text" name="name"></input>
+      </p>
+      <p>
+        <label for="description">Description</label>
+        <textarea name="description"></textarea>
+      </p>
+      <p>
+        <input type="file" id="avatarInput">
+        <img id="avatar">
+      <p>
+      <h2>
+        Homepages
+        <input type="button" data-action="add" value="+" data-target='homepages' data-template='homepage'></input>
+      </h2>
+      <div data-container="homepages"></div>
+      <h2>
+        Feeds
+        <input type="button" data-action="add" value="+" data-target='feeds' data-template='feed'></input>
+      </h2>
+      <div data-container="feeds"></div>
+      <p>
+        <label for="style">Style</label>
+        <textarea name="style"></textarea>
+      </p>
+      <p>
+        <input type="button" name="save" value="save"></input>
+      </p>
+    </form>
+    <div id="templates">
+      <p data-template="homepage">
+        <input name="homepageUrl" type="text" placeholder="URL"></input>
+        <input name="homepageName" type="text" placeholder="Name"></input>
+        <input type="button" data-action="remove" value="-"></input>
+      </p>
+      <p data-template="feed">
+        <select name="feedType">
+          <option value="application/rss+xml">RSS</option>
+          <option value="application/atom+xml">Atom</option>
+        </select>
+        <input name="feedUrl" type="text" placeholder="URL"></input>
+        <input name="feedTitle" type="text" placeholder="Title"></input>
+        <input type="button" data-action="remove" value="-"></input>
+      </p>
+    </div>
+  </body>
+<script>
+function qsn(name, context){
+  return (context || document).querySelector('[name="' + name + '"]');
+}
+function qsa(sel, context) {
+  return Array.prototype.slice.call((document || context).querySelectorAll(sel));
+}
+function Template(templateName) {
+  var node, vars = {};
+  node = document.querySelector('#templates [data-template="' + templateName + '"]').cloneNode(true);
+  function qsv() {
+    return function (name, val) {
+      var element = node.querySelector('[name="' + name + '"]');
+      if (element && typeof val !== 'undefined') {
+        if (element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA') {
+          element.value = val;
+        } else {
+          element.textContent = val;
+        }
+      }
+      return element;
+    };
+  }
+  Array.prototype.slice.call(node.querySelectorAll('[name]')).forEach(function (elmt) {
+    vars[elmt.getAttribute('name')] = elmt;
+  });
+  return {
+    node: node,
+    vars: vars,
+    qsv: qsv(node)
+  };
+}
+window.addEventListener('load', function () {
+ 
+  var form = document.querySelector('form');
+  form.addEventListener('click', function (ev) {
+    var action = ev.target.dataset.action;
+    if (!action) {
+      return;
+    }
+    switch (action) {
+      case 'remove':
+        ev.target.parentNode.parentNode.removeChild(ev.target.parentNode);
+        break;
+      case 'add':
+        document.querySelector('[data-container="' + ev.target.dataset.target + '"]').appendChild(new Template(ev.target.dataset.template).node);
+        break;
+    }
+  });
+  qsn('save').addEventListener('click', function() {
+    var data = {};
+    ['name', 'description', 'style'].forEach(function (key) {
+      data[key] = qsn(key).value;
+    });
+    data.feeds = [];
+    data.homepages = [];
+    data.avatar = document.getElementById('avatar').src;
+    qsa('[data-container=feeds] > p').forEach(function (node) {
+      var title = qsn('feedTitle', node).value.trim(),
+          type  = qsn('feedType', node).value.trim(),
+          url   = qsn('feedUrl', node).value.trim();
+      if (title || url) {
+        data.feeds.push({type: type, title: title, url: url});
+      }
+    });
+    qsa('[data-container=homepages] > p').forEach(function (node) {
+      var name = qsn('homepageName', node).value.trim(),
+          url  = qsn('homepageUrl', node).value.trim();
+      if (name || value) {
+        data.homepages.push({name: name, url: url});
+      }
+    });
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      var frame = document.querySelector('iframe');
+      frame.src = frame.src;
+    }
+    xhr.open("POST", "");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(JSON.stringify(data));
+  });
+  
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function () {
+    var data = JSON.parse(xhr.responseText);
+    ['name', 'description', 'style'].forEach(function (key) {
+      qsn(key).value = data[key];
+    });
+    document.getElementById('avatar').src = data.avatar;
+    data.feeds.forEach(function (feed) {
+      var tpl = new Template('feed');
+      tpl.qsv('feedTitle', feed.title);
+      tpl.qsv('feedType', feed.type);
+      tpl.qsv('feedUrl', feed.url);
+      document.querySelector('[data-container="feeds"]').appendChild(tpl.node);
+    });
+    data.homepages.forEach(function (page) {
+      var tpl = new Template('homepage');
+      tpl.qsv('homepageName', page.name);
+      tpl.qsv('homepageUrl', page.url);
+      document.querySelector('[data-container="homepages"]').appendChild(tpl.node);
+    });
+  }
+  xhr.open("GET", "data");
+  xhr.send();
+
+  document.getElementById('avatarInput').addEventListener('change', function (ev) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      document.getElementById('avatar').src = reader.result;
+    }
+    reader.readAsDataURL(ev.target.files[0]);
+  });
+
+  publicTag = document.getElementById('publicUrl');
+  publicUrl = document.querySelector('iframe').contentDocument.location.toString();
+  publicTag.href = publicUrl;
+  publicTag.textContent = publicUrl;
+
+});
+</script>
+</html
