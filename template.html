@@ -1,21 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.1//EN"
-"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-2.dtd" [
-<!-- try to add microdatas entities, doesn't work 
-  <!ENTITY % itemid.attrib "itemid CDATA #IMPLIED">
-  <!ENTITY % itemprop.attrib "itemprop CDATA #IMPLIED">
-  <!ENTITY % itemref.attrib "itemref CDATA #IMPLIED">
-  <!ENTITY % itemscope.attrib "itemscope CDATA #IMPLIED">
-  <!ENTITY % itemtype.attrib "itemtype CDATA #IMPLIED">
-  <!ENTITY % Core.extra.attrib "
-  %itemid.attrib;
-  %itemprop.attrib;
-  %itemref.attrib;
-  %itemscope.attrib;
-  %itemtype.attrib;"
-  >
--->
-]>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:foaf="http://xmlns.com/foaf/0.1/"
       xmlns:v="http://rdf.data-vocabulary.org/#"
@@ -41,6 +24,28 @@
   {{/keys}}
   <title>{{name}}</title>
   <style type="text/css">
+  body{
+    background-color: #0F8;
+    margin: 1.5em auto;
+    padding: 0px;
+    line-height: 1.4em;
+  }
+  .main {
+    max-width: 42em;
+    margin: 0px auto;
+    padding: 1.5em;
+    background-color: #4FB;
+    color: #000000;
+    font-size: 100%;
+    border-radius: 1em;
+  }
+  h2 {
+    clear: both;
+  }
+  img {
+    float: left;
+    margin: 0 1em 1em 0;
+  }
   {{style}}
   </style>
   <script type="application/ld+json">
@@ -48,12 +53,13 @@
   </script>
 </head>
 <body>
-  <div id="{{name}}" class="vcard" itemscope="itemscope" itemtype="http://data-vocabulary.org/Person" typeof="v:Person">
+  <div id="{{name}}" class="vcard main" itemscope="itemscope" itemtype="http://data-vocabulary.org/Person" typeof="v:Person">
     <h1 class="fn nickname" itemprop="name nickname" property="v:name">{{name}}</h1>
   <p>
   <img src="{{avatar}}" alt="{{name}}" id="avatar" itemprop="photo" />
   {{description}}
   </p>
+  <h2>Home pages</h2>
   <ul>
     {{#homepages}}
     <li><a rel="me" class="url" itemprop="url" href="{{url}}">{{name}}</a> ;</li>

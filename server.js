@@ -30,25 +30,31 @@
   app.use(bodyParser.text({limit: '10mb'}));
   app.use(bodyParser.json());
 
+  // Create public file
   function compile(values) {
-    var i, ldjson = { "@context" : "http://schema.org",
+    var i, jsonld;
+    // Compile JSON-LD data {{
+    jsonld = { "@context" : "http://schema.org",
       "@type" : "Person",
       "name" : values.name
     };
     if (values.homepages.length > 0) {
-      ldjson.url = values.homepages[0].url;
+      jsonld.url = values.homepages[0].url;
     }
     if (values.homepages.length > 1) {
-      ldjson.sameAs = [];
+      jsonld.sameAs = [];
       for (i = 1; i < values.homepages.length; i++) {
-        ldjson.sameAs.push(values.homepages[i]);
+        jsonld.sameAs.push(values.homepages[i]);
       }
     }
-    values.ldjson = ldjson;
+    values.jsonld = JSON.stringify(jsonld, null, 2);
+    // }}
+
     template = hogan.compile(fs.readFileSync(templatePath).toString());
     fs.writeFileSync(indexPath, template.render(values));
   }
 
+  // Load datas from file
   function getData() {
     var data;
     try {
@@ -65,16 +71,19 @@
     return data;
   }
 
-
   compile(getData());
 
   app.use('/public', function (req, res, next) {
     res.setHeader('Content-Type', 'application/xhtml+xml; charset=utf-8');
     fs.readFile(indexPath, function (err, content) {
       if (err) {
-        throw err;
+        console.error(err);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: err}));
+      } else {
+        res.statusCode = 200;
+        res.end(content.toString());
       }
-      res.end(content.toString());
     });
   });
 
@@ -84,6 +93,20 @@
     res.end(JSON.stringify(getData()));
   });
 
+  app.use('/edit.js', function (req, res, next) {
+    res.setHeader("Content-Type", "text/javascript; charset=utf-8");
+    fs.readFile(path.join(__dirname, 'edit.js'), function (err, content) {
+      if (err) {
+        console.error(err);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: err}));
+      } else {
+        res.statusCode = 200;
+        res.end(content.toString());
+      }
+    });
+  });
+
   app.use('/', function (req, res, next) {
     if (req.url === '/') {
       switch (req.method) {
@@ -91,9 +114,13 @@
           res.setHeader('Content-Type', 'text/html');
           fs.readFile(path.join(__dirname, 'edit.html'), function (err, content) {
             if (err) {
-              throw err;
+              console.error(err);
+              res.statusCode = 500;
+              res.end(JSON.stringify({error: err}));
+            } else {
+              res.statusCode = 200;
+              res.end(content.toString());
             }
-            res.end(content.toString());
           });
           break;
         case 'POST':
